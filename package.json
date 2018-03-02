@@ -8,9 +8,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/parpeoficial/stackerjs-db-mysql-adapter"
+        "url": "https://github.com/parpeoficial/stackerjs-orm"
     },
     "main": "lib/index.js",
+
     "dependencies": {
         "babel-polyfill": "^6.26.0",
         "stackerjs-db": "^1.0.1",
@@ -28,6 +29,7 @@
         "stackerjs-db-mysql-adapter": "^1.0.0",
         "stackerjs-utils": "^1.0.2"
     },
+
     "nyc": {
         "exclude": [
             "lib"
