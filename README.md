@@ -87,7 +87,7 @@ let user = await usersRepository.findAll({
 
 ### Comparisions
 | Term | MySQL Term | Description |
-| ==== | ========== | =========== |
+| ---- | --- | --- |
 | eq | = | Looks for exactly equal results |
 | neq | <> | Looks for exactly different |
 | gt | > | Looks for greater values |
