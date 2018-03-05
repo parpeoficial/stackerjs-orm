@@ -8,17 +8,14 @@ export class Util
     {
         let metadata = defaultEntity.metadata();
         
-        let entity = Object.create(defaultEntity);
-        let _attributes = attributes;
-        metadata.fields
-            .forEach(field => 
-            {
-                if (typeof attributes[field.name] !== 'undefined') {
-                    let name = field.alias ? field.alias : field.name;
-                    entity[name] = this.fieldValueParser(field.type, attributes[field.name]);
-                    _attributes[field.name] = this.fieldValueParser(field.type, attributes[field.name])
-                }
-            });
+        let entity = Object.create(defaultEntity), _attributes = attributes;
+        metadata.fields.forEach(field => {
+            if (typeof attributes[field.name] !== 'undefined') {
+                let name = field.alias ? field.alias : field.name;
+                entity[name] = this.fieldValueParser(field.type, attributes[field.name]);
+                _attributes[field.name] = this.fieldValueParser(field.type, attributes[field.name])
+            }
+        });
 
         Object.defineProperty(entity, '_attributes', {
             'get': () => _attributes
