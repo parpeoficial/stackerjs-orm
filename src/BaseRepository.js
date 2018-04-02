@@ -34,12 +34,12 @@ export class BaseRepository
         return Object.keys(this.errors).length > 0;
     }
 
-    beforeValidate(entity) 
+    beforeValidate() 
     {
         return Promise.resolve(true);
     }
 
-    afterValidate(entity) 
+    afterValidate() 
     {
         return Promise.resolve(true);
     }
@@ -96,12 +96,12 @@ export class BaseRepository
         return !this.hasErrors();
     }
 
-    beforeSave(entity) 
+    beforeSave() 
     {
         return Promise.resolve(true);
     }
 
-    afterSave(entity) 
+    afterSave() 
     {
         return Promise.resolve(true);
     }
@@ -305,7 +305,7 @@ export class BaseRepository
 
         return queryBuilder
             .execute()
-            .then(response => true)
+            .then(() => true)
             .catch(err => 
             {
                 this.addError(err.message);
