@@ -1,246 +1,271 @@
-import { DB } from 'stackerjs-db';
-import { Util } from './Util';
+import { DB } from "stackerjs-db";
+import { Util } from "./Util";
 
-
-export class BaseRepository
+export class BaseRepository 
 {
-
-    constructor()
+    constructor() 
     {
         this.errors = {};
     }
 
-    addError(field, message)
+    addError(field, message) 
     {
-        if (!message) {
+        if (!message) 
+        {
             message = field;
-            field = 'Database';
+            field = "Database";
         }
 
-        if (!Array.isArray(this.errors[field]))
-            this.errors[field] = [];
+        if (!Array.isArray(this.errors[field])) this.errors[field] = [];
 
         if (message instanceof Error)
             return this.errors[field].push(message.message);
-        
+
         this.errors[field].push(message);
     }
 
-    getErrors()
+    getErrors() 
     {
         return this.errors;
     }
 
-    hasErrors()
+    hasErrors() 
     {
         return Object.keys(this.errors).length > 0;
     }
 
-    beforeValidate(entity)
+    beforeValidate(entity) 
     {
         return Promise.resolve(true);
     }
 
-    afterValidate(entity)
+    afterValidate(entity) 
     {
         return Promise.resolve(true);
     }
 
-    async validate(entity)
+    async validate(entity) 
     {
-        if (!await this.beforeValidate(entity)) {
+        if (!await this.beforeValidate(entity)) 
+        {
             if (!this.hasErrors())
-                this.addError('validation', 'Presented problems before validating');
+                this.addError(
+                    "validation",
+                    "Presented problems before validating"
+                );
             return false;
         }
 
-        this.entity.metadata().fields.forEach((field) => {
-            if (field.required && 
-                (!entity[field.alias ? field.alias : field.name] || 
-                    entity[field.alias ? field.alias : field.name].length === ''))
+        this.entity.metadata().fields.forEach(field => 
+        {
+            if (
+                field.required &&
+                (!entity[field.alias ? field.alias : field.name] ||
+                    entity[field.alias ? field.alias : field.name].length ===
+                        "")
+            )
                 this.addError(field.name, "Field is required");
 
-            if (field.max && 
-                entity[field.alias ? field.alias : field.name] && 
-                (entity[field.alias ? field.alias : field.name] > field.max || 
-                    entity[field.alias ? field.alias : field.name].length > field.max))
-                this.addError(field.name, `Field length must be under ${field.max}`);
+            if (
+                field.max &&
+                entity[field.alias ? field.alias : field.name] &&
+                (entity[field.alias ? field.alias : field.name] > field.max ||
+                    entity[field.alias ? field.alias : field.name].length >
+                        field.max)
+            )
+                this.addError(
+                    field.name,
+                    `Field length must be under ${field.max}`
+                );
 
-            if (field.min && 
-                entity[field.alias ? field.alias : field.name] && 
-                (entity[field.alias ? field.alias : field.name] < field.min || 
-                    entity[field.alias ? field.alias : field.name].length < field.min))
-                this.addError(field.name, `Field length must be over ${field.min}`);
+            if (
+                field.min &&
+                entity[field.alias ? field.alias : field.name] &&
+                (entity[field.alias ? field.alias : field.name] < field.min ||
+                    entity[field.alias ? field.alias : field.name].length <
+                        field.min)
+            )
+                this.addError(
+                    field.name,
+                    `Field length must be over ${field.min}`
+                );
         });
 
-        if (!await this.afterValidate(entity))
-            return false;
+        if (!await this.afterValidate(entity)) return false;
 
         return !this.hasErrors();
     }
 
-    beforeSave(entity)
+    beforeSave(entity) 
     {
         return Promise.resolve(true);
     }
 
-    afterSave(entity)
+    afterSave(entity) 
     {
         return Promise.resolve(true);
     }
 
-    async save(entity, validate = true)
+    async save(entity, validate = true) 
     {
         this.prepare(entity);
 
-        if (validate && !await this.validate(entity))
-            return false;
+        if (validate && !await this.validate(entity)) return false;
 
-        if (!await this.beforeSave(entity)) {
+        if (!await this.beforeSave(entity)) 
+        {
             if (!this.hasErrors())
-                this.addError('validation', 'Presented problems before saving');
+                this.addError("validation", "Presented problems before saving");
             return false;
         }
 
         if (this.isNewRecord(entity))
-            return this.insert(entity)
-                .then(response => {
-                    if (!response)
-                        return response;
-
-                    return this.afterSave(entity);
-                });
-
-        return this.update(entity)
-            .then(response => {
-                if (!response)
-                    return response;
+            return this.insert(entity).then(response => 
+            {
+                if (!response) return response;
 
                 return this.afterSave(entity);
             });
+
+        return this.update(entity).then(response => 
+        {
+            if (!response) return response;
+
+            return this.afterSave(entity);
+        });
     }
 
-    findById(id)
+    findById(id) 
     {
         let expr = DB.Factory.getQueryCriteria();
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
-            .set('*')
+            .set("*")
             .from(this.entity.metadata().table)
-            .where(expr.eq(this.getFieldByType('pk'), id))
+            .where(expr.eq(this.getFieldByType("pk"), id))
             .limit(1);
-        
-        return queryBuilder.execute()
-            .then(async (results) => {
-                if (results.length <= 0)
-                    return null;
 
-                return await Util.makeEntity(this.entity, results[0]);
-            });
+        return queryBuilder.execute().then(async results => 
+        {
+            if (results.length <= 0) return null;
+
+            return await Util.makeEntity(this.entity, results[0]);
+        });
     }
 
-    find(filter, limit = 100, offset = 0, order)
+    find(filter, limit = 100, offset = 0, order) 
     {
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
             .from(this.entity.metadata().table)
-            .set('*')
+            .set("*")
             .where(filter)
             .limit(limit)
             .offset(offset);
 
-        if (order)
-            queryBuilder.order(...order);
+        if (order) queryBuilder.order(...order);
 
-        return queryBuilder.execute()
-            .then(results => {
-                return Promise.all(
-                    results.map(result => {
-                        return Util.makeEntity(this.entity, result);
-                    })
-                );
-            });
+        return queryBuilder.execute().then(results => 
+        {
+            return Promise.all(results.map(result => 
+            {
+                return Util.makeEntity(this.entity, result);
+            }));
+        });
     }
 
-    findOne(filter)
+    findOne(filter) 
     {
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
             .from(this.entity.metadata().table)
-            .set('*')
+            .set("*")
             .where(filter)
             .limit(1);
 
-        return queryBuilder.execute()
-            .then(([ result ]) => {
-                if (!result)
-                    return null;
+        return queryBuilder.execute().then(([result]) => 
+        {
+            if (!result) return null;
 
-                return Util.makeEntity(this.entity, result);
-            });
+            return Util.makeEntity(this.entity, result);
+        });
     }
 
-    count(filters = null)
+    count(filters = null) 
     {
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
-            .set(['COUNT(*)', 'total'])
+            .set(["COUNT(*)", "total"])
             .from(this.entity.metadata().table);
 
-        if (filters)
-            queryBuilder.where(filters);
+        if (filters) queryBuilder.where(filters);
 
-        return queryBuilder.execute()
-            .then((results) => results[0].total);
+        return queryBuilder.execute().then(results => results[0].total);
     }
 
-    delete(entity)
+    delete(entity) 
     {
         let expr = DB.Factory.getQueryCriteria();
         let queryBuilder = DB.Factory.getQueryBuilder()
             .delete()
             .from(this.entity.metadata().table)
-            .where(expr.eq(this.getFieldByType('pk'), entity[this.getFieldByType('pk')]));
+            .where(expr.eq(
+                this.getFieldByType("pk"),
+                entity[this.getFieldByType("pk")]
+            ));
 
-        return queryBuilder.execute()
+        return queryBuilder
+            .execute()
             .then(() => true)
-            .catch(err => {
+            .catch(err => 
+            {
                 this.addError(err.message);
                 return false;
             });
     }
 
-    insert(entity)
+    insert(entity) 
     {
-        let parameters = [];
         let queryBuilder = DB.Factory.getQueryBuilder()
             .insert()
             .into(this.entity.metadata().table);
 
-        let createdAt = this.getFieldByType('created_at');
+        let createdAt = this.getFieldByType("created_at");
         if (createdAt)
-            entity[createdAt] = parseInt(new Date().getTime().toString().slice(0, -3));
+            entity[createdAt] = parseInt(new Date()
+                .getTime()
+                .toString()
+                .slice(0, -3));
 
         this.entity.metadata().fields.forEach(field => 
         {
-            if (field.type !== 'pk' && 
+            if (
+                field.type !== "pk" &&
                 entity[field.alias ? field.alias : field.name] !== null &&
-                typeof entity[field.alias ? field.alias : field.name] !== 'undefined')
-                queryBuilder.set(field.name, queryBuilder.treatValue(entity[field.alias ? field.alias : field.name], false));
+                typeof entity[field.alias ? field.alias : field.name] !==
+                    "undefined"
+            )
+                queryBuilder.set(
+                    field.name,
+                    entity[field.alias ? field.alias : field.name]
+                );
         });
 
-        return queryBuilder.execute()
-            .then(response => {
+        return queryBuilder
+            .execute()
+            .then(response => 
+            {
                 this.setEntityId(entity, response.lastInsertedId);
                 return true;
             })
-            .catch(err => {
+            .catch(err => 
+            {
                 this.addError(err.message);
                 return false;
             });
     }
 
-    update(entity)
+    update(entity) 
     {
         let parameters = 1;
         let expr = DB.Factory.getQueryCriteria();
@@ -248,73 +273,82 @@ export class BaseRepository
             .update()
             .into(this.entity.metadata().table);
 
-        let updatedAt = this.getFieldByType('updated_at');
+        let updatedAt = this.getFieldByType("updated_at");
         if (updatedAt)
-            entity[updatedAt] = parseInt(new Date().getTime().toString().slice(0, -3));
-        
-        this.entity.metadata().fields.forEach((field) => 
+            entity[updatedAt] = parseInt(new Date()
+                .getTime()
+                .toString()
+                .slice(0, -3));
+
+        this.entity.metadata().fields.forEach(field => 
         {
             let fieldName = field.alias ? field.alias : field.name;
-            if (field.type !== 'pk') {
-                if (field.type !== 'created_at' && 
-                queryBuilder.treatValue(entity[fieldName]) !== 
-                queryBuilder.treatValue(entity['_attributes'][field.name])) {
+            if (field.type !== "pk") 
+            {
+                if (
+                    field.type !== "created_at" &&
+                    queryBuilder.treatValue(entity[fieldName]) !==
+                        queryBuilder.treatValue(entity["_attributes"][field.name])
+                ) 
+                {
                     parameters++;
-                    queryBuilder.set(field.name, queryBuilder.treatValue(entity[fieldName], false));
+                    queryBuilder.set(field.name, entity[fieldName]);
                 }
             }
         });
-        if (parameters <= 1)
-            return Promise.resolve(true);
-        
+        if (parameters <= 1) return Promise.resolve(true);
+
         queryBuilder.where(expr.eq(
-            this.getFieldByType('pk'), 
-            entity['_attributes'][this.getFieldByType('pk')]
+            this.getFieldByType("pk"),
+            entity["_attributes"][this.getFieldByType("pk")]
         ));
 
-        return queryBuilder.execute()
+        return queryBuilder
+            .execute()
             .then(response => true)
-            .catch(err => {
+            .catch(err => 
+            {
                 this.addError(err.message);
                 return false;
             });
     }
 
-    isNewRecord(entity)
+    isNewRecord(entity) 
     {
-        return !entity['_attributes'] || 
-            typeof entity['_attributes'][this.getFieldByType('pk')] === 'undefined' ||
-            !entity['_attributes'][this.getFieldByType('pk')];
+        return (
+            !entity["_attributes"] ||
+            typeof entity["_attributes"][this.getFieldByType("pk")] ===
+                "undefined" ||
+            !entity["_attributes"][this.getFieldByType("pk")]
+        );
     }
 
-    setEntityId(entity, lastInsertedId)
+    setEntityId(entity, lastInsertedId) 
     {
-        this.entity.metadata()
-            .fields
-            .forEach((field) => {
-                if (field.type === 'pk')
-                    entity[field.alias ? field.alias : field.name] = lastInsertedId;
-            });
+        this.entity.metadata().fields.forEach(field => 
+        {
+            if (field.type === "pk")
+                entity[field.alias ? field.alias : field.name] = lastInsertedId;
+        });
     }
 
-    getFieldByType(type)
+    getFieldByType(type) 
     {
-        for (let field of this.entity.metadata().fields) {
-            if (field.type === type)
-                return field.name;
+        for (let field of this.entity.metadata().fields) 
+        {
+            if (field.type === type) return field.name;
         }
 
-        return null;   
+        return null;
     }
 
-    prepare(entity)
+    prepare(entity) 
     {
-        this.entity.metadata().fields.forEach((field) => 
+        this.entity.metadata().fields.forEach(field => 
         {
             let fieldName = field.alias ? field.alias : field.name;
             if (!entity[fieldName] && (field.default || field.default === 0))
                 entity[fieldName] = field.default;
         });
     }
-
 }
