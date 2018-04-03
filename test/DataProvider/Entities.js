@@ -70,6 +70,10 @@ class Contact
                     referencedEntity: new Address(),
                     field: "contact_id",
                     referencedField: "id"
+                },
+                {
+                    name: "something",
+                    type: "NONEXISTENT"
                 }
             ]
         };
