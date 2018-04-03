@@ -63,7 +63,7 @@ export class BaseRepository
                 field.required &&
                 (typeof entity[fieldName] === "undefined" ||
                     (typeof entity[fieldName] === "string" &&
-                        entity[fieldName].length === ""))
+                        entity[fieldName].length < 1))
             )
                 this.addError(field.name, "Field is required");
 
@@ -346,7 +346,10 @@ export class BaseRepository
         this.entity.metadata().fields.forEach(field => 
         {
             let fieldName = field.alias ? field.alias : field.name;
-            if (!entity[fieldName] && (field.default || field.default === 0))
+            if (
+                typeof entity[fieldName] === "undefined" &&
+                (field.default || field.default === 0)
+            )
                 entity[fieldName] = field.default;
         });
     }
