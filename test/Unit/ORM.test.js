@@ -421,6 +421,13 @@ describe("ORMTest", function()
                 let contact = await new ContactRepository().findById(1);
                 expect(await contact.getAddress()).to.be.null;
             });
+
+            it("Should return null when association is defiend wrongly", async () => 
+            {
+                let contact = await new ContactRepository().findById(1);
+
+                expect(await contact.something).to.be.null;
+            });
         });
 
         describe("Counting registers", () => 

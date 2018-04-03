@@ -58,20 +58,20 @@ export class BaseRepository
 
         this.entity.metadata().fields.forEach(field => 
         {
+            let fieldName = field.alias ? field.alias : field.name;
             if (
                 field.required &&
-                (!entity[field.alias ? field.alias : field.name] ||
-                    entity[field.alias ? field.alias : field.name].length ===
-                        "")
+                (typeof entity[fieldName] === "undefined" ||
+                    (typeof entity[fieldName] === "string" &&
+                        entity[fieldName].length === ""))
             )
                 this.addError(field.name, "Field is required");
 
             if (
                 field.max &&
-                entity[field.alias ? field.alias : field.name] &&
-                (entity[field.alias ? field.alias : field.name] > field.max ||
-                    entity[field.alias ? field.alias : field.name].length >
-                        field.max)
+                entity[fieldName] &&
+                (entity[fieldName] > field.max ||
+                    entity[fieldName].length > field.max)
             )
                 this.addError(
                     field.name,
@@ -80,10 +80,9 @@ export class BaseRepository
 
             if (
                 field.min &&
-                entity[field.alias ? field.alias : field.name] &&
-                (entity[field.alias ? field.alias : field.name] < field.min ||
-                    entity[field.alias ? field.alias : field.name].length <
-                        field.min)
+                entity[fieldName] &&
+                (entity[fieldName] < field.min ||
+                    entity[fieldName].length < field.min)
             )
                 this.addError(
                     field.name,
