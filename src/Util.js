@@ -42,6 +42,8 @@ export class Util
                         return this.HASONEAssociation(entity, relation)();
                     else if (relation.type === "MANYMANY")
                         return this.MANYMANYAssociation(entity, relation)();
+
+                    return null;
                 }
             });
         });
