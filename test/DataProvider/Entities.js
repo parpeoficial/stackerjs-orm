@@ -21,6 +21,7 @@ class Contact
                 {
                     type: "boolean",
                     name: "status",
+                    required: true,
                     alias: "active",
                     default: 1
                 },

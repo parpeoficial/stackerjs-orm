@@ -195,6 +195,19 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
+            it("Should validate REQUIRED integer fields", done => 
+            {
+                let contactRepository = new ContactRepository();
+                contactRepository
+                    .save({
+                        first_name: "Some",
+                        last_name: "one",
+                        active: 0
+                    })
+                    .then(response => expect(response).to.be.true)
+                    .then(() => done());
+            });
+
             it("Should validate fields MAX LENGTH", done => 
             {
                 let contact = new Contact();
@@ -438,7 +451,7 @@ describe("ORMTest", function()
 
                 contactRepository
                     .count()
-                    .then(result => expect(result).to.be.equal(4))
+                    .then(result => expect(result).to.be.equal(5))
                     .then(() => done());
             });
 
