@@ -601,6 +601,8 @@ describe("ORMTest", function()
                 .table()
                 .drop("contact_phones")
                 .execute()
-        ]).then(() => done());
+        ])
+            .then(() => DB.Factory.getConnection().disconnect())
+            .then(() => done());
     });
 });
