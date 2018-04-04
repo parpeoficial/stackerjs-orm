@@ -316,7 +316,6 @@ describe("ORMTest", function()
                     })
                     .then(entities => 
                     {
-                        console.log(entities[0].first_name);
                         expect(entities).to.be.instanceOf(Array);
                         expect(entities.length).to.be.equal(1);
                     })

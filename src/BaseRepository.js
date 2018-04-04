@@ -254,7 +254,8 @@ export class BaseRepository
             .execute()
             .then(response => 
             {
-                this.setEntityId(entity, response.lastInsertedId);
+                entity[this.getFieldByType("pk", true)] =
+                    response.lastInsertedId;
                 return true;
             })
             .catch(err => 
@@ -287,7 +288,7 @@ export class BaseRepository
                 if (
                     field.type !== "created_at" &&
                     queryBuilder.treatValue(entity[fieldName]) !==
-                        queryBuilder.treatValue(entity["_attributes"][field.name])
+                        queryBuilder.treatValue(entity._attributes[field.name])
                 ) 
                 {
                     parameters++;
@@ -299,7 +300,7 @@ export class BaseRepository
 
         queryBuilder.where(expr.eq(
             this.getFieldByType("pk"),
-            entity["_attributes"][this.getFieldByType("pk")]
+            entity._attributes[this.getFieldByType("pk")]
         ));
 
         return queryBuilder
@@ -315,27 +316,19 @@ export class BaseRepository
     isNewRecord(entity) 
     {
         return (
-            !entity["_attributes"] ||
-            typeof entity["_attributes"][this.getFieldByType("pk")] ===
+            !entity._attributes ||
+            typeof entity._attributes[this.getFieldByType("pk")] ===
                 "undefined" ||
-            !entity["_attributes"][this.getFieldByType("pk")]
+            !entity._attributes[this.getFieldByType("pk")]
         );
     }
 
-    setEntityId(entity, lastInsertedId) 
-    {
-        this.entity.metadata().fields.forEach(field => 
-        {
-            if (field.type === "pk")
-                entity[field.alias ? field.alias : field.name] = lastInsertedId;
-        });
-    }
-
-    getFieldByType(type) 
+    getFieldByType(type, alias = false) 
     {
         for (let field of this.entity.metadata().fields) 
         {
-            if (field.type === type) return field.name;
+            if (field.type === type)
+                return field.alias && alias ? field.alias : field.name;
         }
 
         return null;
