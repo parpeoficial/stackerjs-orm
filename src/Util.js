@@ -2,35 +2,39 @@ import { DB } from "stackerjs-db";
 
 export class Util 
 {
-    static makeEntity(defaultEntity, attributes) 
+    static makeEntity(defaultEntity, attributes, withs = []) 
     {
         let metadata = defaultEntity.metadata();
 
         let entity = Object.create(defaultEntity),
-            _attributes = attributes;
+            properties = {
+                _attributes: {
+                    value: attributes
+                }
+            };
         metadata.fields.forEach(field => 
         {
             if (typeof attributes[field.name] !== "undefined") 
             {
                 let name = field.alias ? field.alias : field.name;
-                entity[name] = this.fieldValueParser(
-                    field.type,
-                    attributes[field.name]
-                );
-                _attributes[field.name] = this.fieldValueParser(
-                    field.type,
-                    attributes[field.name]
-                );
+                properties[name] = {
+                    enumerable: true,
+                    writable: true,
+                    value: this.fieldValueParser(
+                        field.type,
+                        attributes[field.name]
+                    )
+                };
+                properties._attributes.value[
+                    field.name
+                ] = this.fieldValueParser(field.type, attributes[field.name]);
             }
-        });
-
-        Object.defineProperty(entity, "_attributes", {
-            get: () => _attributes
         });
 
         metadata.relations.forEach(relation => 
         {
-            Object.defineProperty(entity, relation.name, {
+            properties[relation.name] = {
+                enumerable: withs.includes(relation.name),
                 get: () => 
                 {
                     if (relation.type === "HASMANY")
@@ -45,8 +49,9 @@ export class Util
 
                     return null;
                 }
-            });
+            };
         });
+        Object.defineProperties(entity, properties);
 
         return Promise.resolve(entity);
     }
