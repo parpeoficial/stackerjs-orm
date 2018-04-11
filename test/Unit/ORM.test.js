@@ -316,7 +316,6 @@ describe("ORMTest", function()
                     })
                     .then(entities => 
                     {
-                        console.log(entities[0].first_name);
                         expect(entities).to.be.instanceOf(Array);
                         expect(entities.length).to.be.equal(1);
                     })
@@ -387,59 +386,6 @@ describe("ORMTest", function()
                         expect(contact).to.be.null;
                     })
                     .then(() => done());
-            });
-        });
-
-        describe("Finding Entities and it's associated datas", () => 
-        {
-            it("Should find an Entity and associated HASMANY entities", async () => 
-            {
-                let contact = await new ContactRepository().findById(1);
-
-                let phones = await contact.getPhones();
-                expect(phones.length).to.be.equal(3);
-                expect(phones[0].getPhoneNumber()).to.be.equal("123");
-                expect(phones[0].isActive()).to.be.true;
-            });
-
-            it("Should find an Entity and associated BELONGSTO entities", async () => 
-            {
-                let contact = await new ContactRepository().findById(1);
-
-                let phones = await contact.getPhones();
-                expect(phones).to.be.instanceOf(Array);
-                expect(phones.length).to.be.equal(3);
-                expect(phones[0]).to.be.instanceOf(Phone);
-                expect(phones[0].getPhoneNumber()).to.be.equal("123");
-                expect(phones[0].isActive()).to.be.true;
-
-                let contactAgain = await phones[0].getContact();
-                expect(contactAgain.getId()).to.be.equal(1);
-            });
-
-            it("Should find and Entity and associated MANYMANY entities", async () => 
-            {
-                let contact = await new ContactRepository().findById(1);
-
-                let schedules = await contact.getSchedules();
-                expect(schedules).to.be.instanceOf(Array);
-                expect(schedules.length).to.be.equal(3);
-                expect(schedules[0]).to.be.instanceOf(Schedule);
-                expect(schedules[0].getStartTime()).to.be.instanceOf(Date);
-                expect(schedules[0].getStartTime().getFullYear()).to.be.equal(2017);
-            });
-
-            it("Should return null when BELONGSTO returns nothing", async () => 
-            {
-                let contact = await new ContactRepository().findById(1);
-                expect(await contact.getAddress()).to.be.null;
-            });
-
-            it("Should return null when association is defiend wrongly", async () => 
-            {
-                let contact = await new ContactRepository().findById(1);
-
-                expect(await contact.something).to.be.null;
             });
         });
 
@@ -542,6 +488,67 @@ describe("ORMTest", function()
                     .then(response => expect(response).to.be.false)
                     .then(() => done());
             });
+        });
+    });
+
+    describe("Handling associations", () => 
+    {
+        it("Should find an Entity and associated HASMANY entities", async () => 
+        {
+            let contact = await new ContactRepository().findById(1);
+
+            let phones = await contact.getPhones();
+            expect(phones.length).to.be.equal(3);
+            expect(phones[0].getPhoneNumber()).to.be.equal("123");
+            expect(phones[0].isActive()).to.be.true;
+        });
+
+        it("Should find an Entity and associated BELONGSTO entities", async () => 
+        {
+            let contact = await new ContactRepository().findById(1);
+
+            let phones = await contact.getPhones();
+            expect(phones).to.be.instanceOf(Array);
+            expect(phones.length).to.be.equal(3);
+            expect(phones[0]).to.be.instanceOf(Phone);
+            expect(phones[0].getPhoneNumber()).to.be.equal("123");
+            expect(phones[0].isActive()).to.be.true;
+
+            let contactAgain = await phones[0].getContact();
+            expect(contactAgain.getId()).to.be.equal(1);
+        });
+
+        it("Should find and Entity and associated MANYMANY entities", async () => 
+        {
+            let contact = await new ContactRepository().findById(1);
+
+            let schedules = await contact.getSchedules();
+            expect(schedules).to.be.instanceOf(Array);
+            expect(schedules.length).to.be.equal(3);
+            expect(schedules[0]).to.be.instanceOf(Schedule);
+            expect(schedules[0].getStartTime()).to.be.instanceOf(Date);
+            expect(schedules[0].getStartTime().getFullYear()).to.be.equal(2017);
+        });
+
+        it("Should return null when BELONGSTO returns nothing", async () => 
+        {
+            let contact = await new ContactRepository().findById(1);
+            expect(await contact.getAddress()).to.be.null;
+        });
+
+        it("Should return null when association is defiend wrongly", async () => 
+        {
+            let contact = await new ContactRepository().findById(1);
+
+            expect(await contact.something).to.be.null;
+        });
+
+        it("Should handle WITHS", async () => 
+        {
+            let contactRepository = new ContactRepository();
+            let contact = await contactRepository.with("schedules").findById(1);
+
+            console.log(contact);
         });
     });
 

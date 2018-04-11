@@ -2,51 +2,26 @@ import { DB } from "stackerjs-db";
 
 export class Util 
 {
-    static makeEntity(defaultEntity, attributes) 
+    static makeEntity(defaultEntity, attributes, withs = []) 
     {
         let metadata = defaultEntity.metadata();
 
         let entity = Object.create(defaultEntity),
-            _attributes = attributes;
-        metadata.fields.forEach(field => 
-        {
-            if (typeof attributes[field.name] !== "undefined") 
-            {
-                let name = field.alias ? field.alias : field.name;
-                entity[name] = this.fieldValueParser(
-                    field.type,
-                    attributes[field.name]
-                );
-                _attributes[field.name] = this.fieldValueParser(
-                    field.type,
-                    attributes[field.name]
-                );
-            }
-        });
-
-        Object.defineProperty(entity, "_attributes", {
-            get: () => _attributes
-        });
-
-        metadata.relations.forEach(relation => 
-        {
-            Object.defineProperty(entity, relation.name, {
-                get: () => 
-                {
-                    if (relation.type === "HASMANY")
-                        return this.HASMANYAssociation(entity, relation)();
-                    else if (
-                        relation.type === "HASONE" ||
-                        relation.type === "BELONGSTO"
-                    )
-                        return this.HASONEAssociation(entity, relation)();
-                    else if (relation.type === "MANYMANY")
-                        return this.MANYMANYAssociation(entity, relation)();
-
-                    return null;
+            properties = {
+                _attributes: {
+                    value: attributes
                 }
-            });
-        });
+            };
+
+        this.makeEntityFields(properties, attributes, entity, metadata);
+        this.makeEntityRelations(
+            properties,
+            attributes,
+            entity,
+            metadata,
+            withs
+        );
+        Object.defineProperties(entity, properties);
 
         return Promise.resolve(entity);
     }
@@ -134,5 +109,57 @@ export class Util
                 .then(results =>
                     Promise.all(results.map(result =>
                         this.makeEntity(relation.referencedEntity, result))));
+    }
+
+    static makeEntityFields(properties, attributes, entity, metadata) 
+    {
+        metadata.fields.forEach(field => 
+        {
+            if (typeof attributes[field.name] !== "undefined") 
+            {
+                let name = field.alias ? field.alias : field.name;
+                properties[name] = {
+                    enumerable: true,
+                    writable: true,
+                    value: this.fieldValueParser(
+                        field.type,
+                        attributes[field.name]
+                    )
+                };
+                properties._attributes.value[
+                    field.name
+                ] = this.fieldValueParser(field.type, attributes[field.name]);
+            }
+        });
+    }
+
+    static makeEntityRelations(
+        properties,
+        attributes,
+        entity,
+        metadata,
+        withs
+    ) 
+    {
+        metadata.relations.forEach(relation => 
+        {
+            properties[relation.name] = {
+                enumerable: withs.includes(relation.name),
+                get: () => 
+                {
+                    if (relation.type === "HASMANY")
+                        return this.HASMANYAssociation(entity, relation)();
+                    else if (
+                        relation.type === "HASONE" ||
+                        relation.type === "BELONGSTO"
+                    )
+                        return this.HASONEAssociation(entity, relation)();
+                    else if (relation.type === "MANYMANY")
+                        return this.MANYMANYAssociation(entity, relation)();
+
+                    return null;
+                }
+            };
+        });
     }
 }
