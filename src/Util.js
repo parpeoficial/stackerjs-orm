@@ -12,45 +12,15 @@ export class Util
                     value: attributes
                 }
             };
-        metadata.fields.forEach(field => 
-        {
-            if (typeof attributes[field.name] !== "undefined") 
-            {
-                let name = field.alias ? field.alias : field.name;
-                properties[name] = {
-                    enumerable: true,
-                    writable: true,
-                    value: this.fieldValueParser(
-                        field.type,
-                        attributes[field.name]
-                    )
-                };
-                properties._attributes.value[
-                    field.name
-                ] = this.fieldValueParser(field.type, attributes[field.name]);
-            }
-        });
 
-        metadata.relations.forEach(relation => 
-        {
-            properties[relation.name] = {
-                enumerable: withs.includes(relation.name),
-                get: () => 
-                {
-                    if (relation.type === "HASMANY")
-                        return this.HASMANYAssociation(entity, relation)();
-                    else if (
-                        relation.type === "HASONE" ||
-                        relation.type === "BELONGSTO"
-                    )
-                        return this.HASONEAssociation(entity, relation)();
-                    else if (relation.type === "MANYMANY")
-                        return this.MANYMANYAssociation(entity, relation)();
-
-                    return null;
-                }
-            };
-        });
+        this.makeEntityFields(properties, attributes, entity, metadata);
+        this.makeEntityRelations(
+            properties,
+            attributes,
+            entity,
+            metadata,
+            withs
+        );
         Object.defineProperties(entity, properties);
 
         return Promise.resolve(entity);
@@ -139,5 +109,57 @@ export class Util
                 .then(results =>
                     Promise.all(results.map(result =>
                         this.makeEntity(relation.referencedEntity, result))));
+    }
+
+    static makeEntityFields(properties, attributes, entity, metadata) 
+    {
+        metadata.fields.forEach(field => 
+        {
+            if (typeof attributes[field.name] !== "undefined") 
+            {
+                let name = field.alias ? field.alias : field.name;
+                properties[name] = {
+                    enumerable: true,
+                    writable: true,
+                    value: this.fieldValueParser(
+                        field.type,
+                        attributes[field.name]
+                    )
+                };
+                properties._attributes.value[
+                    field.name
+                ] = this.fieldValueParser(field.type, attributes[field.name]);
+            }
+        });
+    }
+
+    static makeEntityRelations(
+        properties,
+        attributes,
+        entity,
+        metadata,
+        withs
+    ) 
+    {
+        metadata.relations.forEach(relation => 
+        {
+            properties[relation.name] = {
+                enumerable: withs.includes(relation.name),
+                get: () => 
+                {
+                    if (relation.type === "HASMANY")
+                        return this.HASMANYAssociation(entity, relation)();
+                    else if (
+                        relation.type === "HASONE" ||
+                        relation.type === "BELONGSTO"
+                    )
+                        return this.HASONEAssociation(entity, relation)();
+                    else if (relation.type === "MANYMANY")
+                        return this.MANYMANYAssociation(entity, relation)();
+
+                    return null;
+                }
+            };
+        });
     }
 }
