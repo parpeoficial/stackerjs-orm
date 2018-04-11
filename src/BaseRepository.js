@@ -6,6 +6,7 @@ export class BaseRepository
     constructor() 
     {
         this.errors = {};
+        this.withs = [];
     }
 
     addError(field, message) 
@@ -42,6 +43,13 @@ export class BaseRepository
     afterValidate() 
     {
         return Promise.resolve(true);
+    }
+
+    with(withs) 
+    {
+        this.withs.push(withs);
+
+        return this;
     }
 
     async validate(entity) 
@@ -148,7 +156,7 @@ export class BaseRepository
         {
             if (results.length <= 0) return null;
 
-            return await Util.makeEntity(this.entity, results[0]);
+            return await Util.makeEntity(this.entity, results[0], this.withs);
         });
     }
 
@@ -168,7 +176,7 @@ export class BaseRepository
         {
             return Promise.all(results.map(result => 
             {
-                return Util.makeEntity(this.entity, result);
+                return Util.makeEntity(this.entity, result, this.withs);
             }));
         });
     }
@@ -186,7 +194,7 @@ export class BaseRepository
         {
             if (!result) return null;
 
-            return Util.makeEntity(this.entity, result);
+            return Util.makeEntity(this.entity, result, this.withs);
         });
     }
 
