@@ -1,6 +1,6 @@
 {
     "name": "stackerjs-orm",
-    "version": "1.0.7",
+    "version": "beta",
     "author": {
         "name": "Vinicius Guedes",
         "email": "viniciusgued@gmail.com",
@@ -29,17 +29,9 @@
         "stackerjs-utils": "^1.0.6"
     },
     "nyc": {
-        "exclude": [
-            "lib"
-        ],
-        "require": [
-            "babel-register",
-            "babel-polyfill"
-        ],
-        "reporter": [
-            "lcov",
-            "text"
-        ]
+        "exclude": ["lib"],
+        "require": ["babel-register", "babel-polyfill"],
+        "reporter": ["lcov", "text"]
     },
     "scripts": {
         "build": "./node_modules/.bin/babel src -d lib",
