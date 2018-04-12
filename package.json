@@ -1,6 +1,6 @@
 {
     "name": "stackerjs-orm",
-    "version": "v1.0.9",
+    "version": "v1.0.10",
     "author": {
         "name": "Vinicius Guedes",
         "email": "viniciusgued@gmail.com",
@@ -10,7 +10,7 @@
         "type": "git",
         "url": "https://github.com/parpeoficial/stackerjs-orm"
     },
-    "main": "lib/index.js",
+    "main": "index.js",
     "dependencies": {
         "babel-polyfill": "^6.26.0",
         "stackerjs-db": "^1.0.2",
