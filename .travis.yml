@@ -46,15 +46,9 @@ after_script:
   - rm -rf ./cc-test-reporter
 
 deploy:
-  - provider: npm
-    email: "admin@parpe.com"
-    api_key: $NPM_TOKEN
-    skip_cleanup: true
-    on:
-      tag: next
-  - provider: npm
-    email: "admin@parpe.com"
-    api_key: $NPM_TOKEN
-    skip_cleanup: true
-    on:
-      branch: master
+  provider: npm
+  email: "admin@parpe.com"
+  api_key: $NPM_TOKEN
+  skip_cleanup: true
+  on:
+    branch: master
