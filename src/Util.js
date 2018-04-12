@@ -2,8 +2,10 @@ import { DB } from "stackerjs-db";
 
 export class Util 
 {
-    static makeEntity(defaultEntity, attributes, withs = []) 
+    static async makeEntity(defaultEntity, attributes, withs = []) 
     {
+        if (Array.isArray(withs)) withs = this.prepareAssociations(withs);
+
         let metadata = defaultEntity.metadata();
 
         let entity = Object.create(defaultEntity),
@@ -11,19 +13,22 @@ export class Util
                 _attributes: {
                     value: attributes
                 }
-            };
+            },
+            relations = {};
 
         this.makeEntityFields(properties, attributes, entity, metadata);
-        this.makeEntityRelations(
-            properties,
+        Object.defineProperties(entity, properties);
+
+        await this.makeEntityRelations(
+            relations,
             attributes,
             entity,
             metadata,
             withs
         );
-        Object.defineProperties(entity, properties);
+        Object.defineProperties(entity, relations);
 
-        return Promise.resolve(entity);
+        return entity;
     }
 
     static fieldValueParser(type, value) 
@@ -46,7 +51,7 @@ export class Util
         else return value;
     }
 
-    static MANYMANYAssociation(entity, relation) 
+    static MANYMANYAssociation(entity, relation, withs = []) 
     {
         let expr = DB.Factory.getQueryCriteria();
         let queryBuilder = DB.Factory.getQueryBuilder()
@@ -66,10 +71,14 @@ export class Util
                 .execute()
                 .then(results =>
                     Promise.all(results.map(result =>
-                        this.makeEntity(relation.referencedEntity, result))));
+                        this.makeEntity(
+                            relation.referencedEntity,
+                            result,
+                            withs
+                        ))));
     }
 
-    static HASONEAssociation(entity, relation) 
+    static HASONEAssociation(entity, relation, withs = []) 
     {
         let expr = DB.Factory.getQueryCriteria();
         let queryBuilder = DB.Factory.getQueryBuilder()
@@ -87,11 +96,15 @@ export class Util
             {
                 if (results.length <= 0) return Promise.resolve(null);
 
-                return this.makeEntity(relation.referencedEntity, results[0]);
+                return this.makeEntity(
+                    relation.referencedEntity,
+                    results[0],
+                    withs
+                );
             });
     }
 
-    static HASMANYAssociation(entity, relation) 
+    static HASMANYAssociation(entity, relation, withs = []) 
     {
         let expr = DB.Factory.getQueryCriteria();
         let queryBuilder = DB.Factory.getQueryBuilder()
@@ -108,7 +121,11 @@ export class Util
                 .execute()
                 .then(results =>
                     Promise.all(results.map(result =>
-                        this.makeEntity(relation.referencedEntity, result))));
+                        this.makeEntity(
+                            relation.referencedEntity,
+                            result,
+                            withs
+                        ))));
     }
 
     static makeEntityFields(properties, attributes, entity, metadata) 
@@ -133,7 +150,7 @@ export class Util
         });
     }
 
-    static makeEntityRelations(
+    static async makeEntityRelations(
         properties,
         attributes,
         entity,
@@ -141,25 +158,55 @@ export class Util
         withs
     ) 
     {
-        metadata.relations.forEach(relation => 
+        await Promise.all(metadata.relations.map(async relation => 
         {
-            properties[relation.name] = {
-                enumerable: withs.includes(relation.name),
-                get: () => 
-                {
-                    if (relation.type === "HASMANY")
-                        return this.HASMANYAssociation(entity, relation)();
-                    else if (
-                        relation.type === "HASONE" ||
+            let relationGetter = chainedWiths => 
+            {
+                if (relation.type === "HASMANY")
+                    return this.HASMANYAssociation(
+                        entity,
+                        relation,
+                        chainedWiths
+                    )();
+                else if (
+                    relation.type === "HASONE" ||
                         relation.type === "BELONGSTO"
-                    )
-                        return this.HASONEAssociation(entity, relation)();
-                    else if (relation.type === "MANYMANY")
-                        return this.MANYMANYAssociation(entity, relation)();
+                )
+                    return this.HASONEAssociation(
+                        entity,
+                        relation,
+                        chainedWiths
+                    )();
+                else if (relation.type === "MANYMANY")
+                    return this.MANYMANYAssociation(
+                        entity,
+                        relation,
+                        chainedWiths
+                    )();
 
-                    return null;
-                }
+                return null;
             };
+
+            properties[relation.name] = {
+                enumerable: typeof withs[relation.name] !== "undefined"
+            };
+
+            if (withs[relation.name])
+                properties[relation.name].value = await relationGetter(withs[relation.name]);
+            else properties[relation.name].get = relationGetter;
+        }));
+    }
+
+    static prepareAssociations(withs) 
+    {
+        let associations = {};
+        withs.forEach(w => 
+        {
+            w = w.split(".");
+            if (w[1]) associations[w[0]] = this.prepareAssociations(w.slice(1));
+            else associations[w[0]] = {};
         });
+
+        return associations;
     }
 }

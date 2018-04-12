@@ -200,7 +200,16 @@ class Schedule
                 },
                 { type: "json", name: "extra", default: "_" }
             ],
-            relations: []
+            relations: [
+                {
+                    name: "contact",
+                    type: "MANYMANY",
+                    referencedEntity: new Contact(),
+                    field: "schedule_id",
+                    table: "contacts_schedules",
+                    referencedField: "contact_id"
+                }
+            ]
         };
     }
 

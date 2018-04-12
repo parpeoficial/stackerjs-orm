@@ -545,10 +545,16 @@ describe("ORMTest", function()
 
         it("Should handle WITHS", async () => 
         {
-            let contactRepository = new ContactRepository();
-            let contact = await contactRepository.with("schedules").findById(1);
+            let schedulesRepository = new SchedulesRepository();
+            let schedule = await schedulesRepository
+                .with("contact.phones")
+                .findById(1);
 
-            console.log(contact);
+            expect(schedule).to.have.property("contact");
+            expect(schedule.contact).to.be.an("array");
+            expect(schedule.contact[0]).to.have.property("phones");
+            expect(schedule.contact[0].phones).to.be.an("array");
+            expect(schedule.contact[0].phones[0]).to.be.instanceof(Phone);
         });
     });
 

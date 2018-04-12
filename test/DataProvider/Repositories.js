@@ -1,4 +1,4 @@
-import { ORM } from "./../../lib";
+import { ORM } from "./../../index";
 import { Contact, Schedule } from "./Entities";
 
 class ContactRepository extends ORM.BaseRepository 
