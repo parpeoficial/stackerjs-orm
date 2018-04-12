@@ -1,6 +1,6 @@
 {
     "name": "stackerjs-orm",
-    "version": "v1.0.9-beta.1",
+    "version": "v1.0.9",
     "author": {
         "name": "Vinicius Guedes",
         "email": "viniciusgued@gmail.com",
@@ -28,22 +28,13 @@
         "stackerjs-utils": "^1.0.6"
     },
     "nyc": {
-        "exclude": [
-            "lib",
-            "test",
-            "index.js"
-        ],
-        "require": [
-            "babel-register",
-            "babel-polyfill"
-        ],
-        "reporter": [
-            "lcov",
-            "text"
-        ]
+        "exclude": ["lib", "test", "index.js"],
+        "require": ["babel-register", "babel-polyfill"],
+        "reporter": ["lcov", "text"]
     },
     "scripts": {
         "build": "./node_modules/.bin/babel src -d lib",
-        "test": "NODE_ENV=dev ./node_modules/.bin/nyc ./node_modules/mocha/bin/_mocha"
+        "test":
+            "NODE_ENV=dev ./node_modules/.bin/nyc ./node_modules/mocha/bin/_mocha"
     }
 }
