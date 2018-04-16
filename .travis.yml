@@ -21,7 +21,7 @@ notifications:
 before_install:
   - sudo mysql_upgrade
   - sudo service mysql restart
-  - npm install -g codecov istanbul
+  - npm install -g istanbul
 
 install:
   - npm install
