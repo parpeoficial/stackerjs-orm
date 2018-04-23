@@ -1,14 +1,18 @@
 import { DB } from "stackerjs-db";
 import { Util } from "./Util";
 
-export class BaseRepository {
-    constructor() {
+export class BaseRepository 
+{
+    constructor() 
+    {
         this.errors = {};
         this.withs = [];
     }
 
-    addError(field, message) {
-        if (!message) {
+    addError(field, message) 
+    {
+        if (!message) 
+        {
             message = field;
             field = "Database";
         }
@@ -21,30 +25,37 @@ export class BaseRepository {
         this.errors[field].push(message);
     }
 
-    getErrors() {
+    getErrors() 
+    {
         return this.errors;
     }
 
-    hasErrors() {
+    hasErrors() 
+    {
         return Object.keys(this.errors).length > 0;
     }
 
-    beforeValidate() {
+    beforeValidate() 
+    {
         return Promise.resolve(true);
     }
 
-    afterValidate() {
+    afterValidate() 
+    {
         return Promise.resolve(true);
     }
 
-    with(withs) {
+    with(withs) 
+    {
         this.withs.push(withs);
 
         return this;
     }
 
-    async validate(entity) {
-        if (!await this.beforeValidate(entity)) {
+    async validate(entity) 
+    {
+        if (!await this.beforeValidate(entity)) 
+        {
             if (!this.hasErrors())
                 this.addError(
                     "validation",
@@ -53,7 +64,8 @@ export class BaseRepository {
             return false;
         }
 
-        this.entity.metadata().fields.forEach(field => {
+        this.entity.metadata().fields.forEach(field => 
+        {
             let fieldName = field.alias ? field.alias : field.name;
             if (
                 field.required &&
@@ -91,40 +103,47 @@ export class BaseRepository {
         return !this.hasErrors();
     }
 
-    beforeSave() {
+    beforeSave() 
+    {
         return Promise.resolve(true);
     }
 
-    afterSave() {
+    afterSave() 
+    {
         return Promise.resolve(true);
     }
 
-    async save(entity, validate = true) {
+    async save(entity, validate = true) 
+    {
         this.prepare(entity);
 
         if (validate && !await this.validate(entity)) return false;
 
-        if (!await this.beforeSave(entity)) {
+        if (!await this.beforeSave(entity)) 
+        {
             if (!this.hasErrors())
                 this.addError("validation", "Presented problems before saving");
             return false;
         }
 
         if (this.isNewRecord(entity))
-            return this.insert(entity).then(response => {
+            return this.insert(entity).then(response => 
+            {
                 if (!response) return response;
 
                 return this.afterSave(entity);
             });
 
-        return this.update(entity).then(response => {
+        return this.update(entity).then(response => 
+        {
             if (!response) return response;
 
             return this.afterSave(entity);
         });
     }
 
-    findById(id) {
+    findById(id) 
+    {
         let expr = DB.Factory.getQueryCriteria();
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
@@ -133,14 +152,16 @@ export class BaseRepository {
             .where(expr.eq(this.getFieldByType("pk"), id))
             .limit(1);
 
-        return queryBuilder.execute().then(async results => {
+        return queryBuilder.execute().then(async results => 
+        {
             if (results.length <= 0) return null;
 
             return await Util.makeEntity(this.entity, results[0], this.withs);
         });
     }
 
-    find(filter, limit = 100, offset = 0, orders = null) {
+    find(filter, limit = 100, offset = 0, orders = null) 
+    {
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
             .from(this.entity.metadata().table)
@@ -149,19 +170,23 @@ export class BaseRepository {
             .limit(limit)
             .offset(offset);
 
-        if (orders) queryBuilder.order(...orders.map(o => {
+        if (orders) queryBuilder.order(...orders.map(o => 
+        {
             let [order, direction] = o.split(" ");
             return [order, direction || "ASC"];
         }));
 
-        return queryBuilder.execute().then(results => {
-            return Promise.all(results.map(result => {
+        return queryBuilder.execute().then(results => 
+        {
+            return Promise.all(results.map(result => 
+            {
                 return Util.makeEntity(this.entity, result, this.withs);
             }));
         });
     }
 
-    findOne(filter) {
+    findOne(filter) 
+    {
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
             .from(this.entity.metadata().table)
@@ -169,14 +194,16 @@ export class BaseRepository {
             .where(filter)
             .limit(1);
 
-        return queryBuilder.execute().then(([result]) => {
+        return queryBuilder.execute().then(([result]) => 
+        {
             if (!result) return null;
 
             return Util.makeEntity(this.entity, result, this.withs);
         });
     }
 
-    count(filters = null) {
+    count(filters = null) 
+    {
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
             .set(["COUNT(*)", "total"])
@@ -187,7 +214,8 @@ export class BaseRepository {
         return queryBuilder.execute().then(results => results[0].total);
     }
 
-    delete(entity) {
+    delete(entity) 
+    {
         let expr = DB.Factory.getQueryCriteria();
         let queryBuilder = DB.Factory.getQueryBuilder()
             .delete()
@@ -200,13 +228,15 @@ export class BaseRepository {
         return queryBuilder
             .execute()
             .then(() => true)
-            .catch(err => {
+            .catch(err => 
+            {
                 this.addError(err.message);
                 return false;
             });
     }
 
-    insert(entity) {
+    insert(entity) 
+    {
         let queryBuilder = DB.Factory.getQueryBuilder()
             .insert()
             .into(this.entity.metadata().table);
@@ -218,7 +248,8 @@ export class BaseRepository {
                 .toString()
                 .slice(0, -3));
 
-        this.entity.metadata().fields.forEach(field => {
+        this.entity.metadata().fields.forEach(field => 
+        {
             if (
                 field.type !== "pk" &&
                 entity[field.alias ? field.alias : field.name] !== null &&
@@ -233,18 +264,21 @@ export class BaseRepository {
 
         return queryBuilder
             .execute()
-            .then(response => {
+            .then(response => 
+            {
                 entity[this.getFieldByType("pk", true)] =
                     response.lastInsertedId;
                 return true;
             })
-            .catch(err => {
+            .catch(err => 
+            {
                 this.addError(err.message);
                 return false;
             });
     }
 
-    update(entity) {
+    update(entity) 
+    {
         let parameters = 1;
         let expr = DB.Factory.getQueryCriteria();
         let queryBuilder = DB.Factory.getQueryBuilder()
@@ -258,14 +292,17 @@ export class BaseRepository {
                 .toString()
                 .slice(0, -3));
 
-        this.entity.metadata().fields.forEach(field => {
+        this.entity.metadata().fields.forEach(field => 
+        {
             let fieldName = field.alias ? field.alias : field.name;
-            if (field.type !== "pk") {
+            if (field.type !== "pk") 
+            {
                 if (
                     field.type !== "created_at" &&
                     queryBuilder.treatValue(entity[fieldName]) !==
                     queryBuilder.treatValue(entity._attributes[field.name])
-                ) {
+                ) 
+                {
                     parameters++;
                     queryBuilder.set(field.name, entity[fieldName]);
                 }
@@ -281,13 +318,15 @@ export class BaseRepository {
         return queryBuilder
             .execute()
             .then(() => true)
-            .catch(err => {
+            .catch(err => 
+            {
                 this.addError(err.message);
                 return false;
             });
     }
 
-    isNewRecord(entity) {
+    isNewRecord(entity) 
+    {
         return (
             !entity._attributes ||
             typeof entity._attributes[this.getFieldByType("pk")] ===
@@ -296,8 +335,10 @@ export class BaseRepository {
         );
     }
 
-    getFieldByType(type, alias = false) {
-        for (let field of this.entity.metadata().fields) {
+    getFieldByType(type, alias = false) 
+    {
+        for (let field of this.entity.metadata().fields) 
+        {
             if (field.type === type)
                 return field.alias && alias ? field.alias : field.name;
         }
@@ -305,8 +346,10 @@ export class BaseRepository {
         return null;
     }
 
-    prepare(entity) {
-        this.entity.metadata().fields.forEach(field => {
+    prepare(entity) 
+    {
+        this.entity.metadata().fields.forEach(field => 
+        {
             let fieldName = field.alias ? field.alias : field.name;
             if (
                 typeof entity[fieldName] === "undefined" &&
