@@ -45,7 +45,7 @@
     },
     "scripts": {
         "precommit": "npm run lint",
-        "lint": "eslint src/ --fix",
+        "lint": "eslint src/ test/ --fix",
         "build": "./node_modules/.bin/babel src -d lib",
         "test": "NODE_ENV=dev ./node_modules/.bin/nyc ./node_modules/mocha/bin/_mocha"
     }
