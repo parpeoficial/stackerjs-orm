@@ -160,7 +160,7 @@ export class BaseRepository
         });
     }
 
-    find(filter, limit = 100, offset = 0, order) 
+    find(filter, limit = 100, offset = 0, orders = null) 
     {
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
@@ -170,7 +170,11 @@ export class BaseRepository
             .limit(limit)
             .offset(offset);
 
-        if (order) queryBuilder.order(...order);
+        if (orders) queryBuilder.order(...orders.map(o => 
+        {
+            let [order, direction] = o.split(" ");
+            return [order, direction || "ASC"];
+        }));
 
         return queryBuilder.execute().then(results => 
         {
@@ -250,7 +254,7 @@ export class BaseRepository
                 field.type !== "pk" &&
                 entity[field.alias ? field.alias : field.name] !== null &&
                 typeof entity[field.alias ? field.alias : field.name] !==
-                    "undefined"
+                "undefined"
             )
                 queryBuilder.set(
                     field.name,
@@ -296,7 +300,7 @@ export class BaseRepository
                 if (
                     field.type !== "created_at" &&
                     queryBuilder.treatValue(entity[fieldName]) !==
-                        queryBuilder.treatValue(entity._attributes[field.name])
+                    queryBuilder.treatValue(entity._attributes[field.name])
                 ) 
                 {
                     parameters++;
@@ -326,7 +330,7 @@ export class BaseRepository
         return (
             !entity._attributes ||
             typeof entity._attributes[this.getFieldByType("pk")] ===
-                "undefined" ||
+            "undefined" ||
             !entity._attributes[this.getFieldByType("pk")]
         );
     }

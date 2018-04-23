@@ -7,11 +7,9 @@ import {
     SchedulesRepository
 } from "./../DataProvider/Repositories";
 
-describe("ORMTest", function() 
-{
+describe("ORMTest", function () {
     this.timeout(6000);
-    before(function(done) 
-    {
+    before(function (done) {
         let qb = DB.Factory.getQueryBuilder();
         Promise.all([
             qb
@@ -140,10 +138,8 @@ describe("ORMTest", function()
         ]).then(() => done());
     });
 
-    describe("EntityTest", () => 
-    {
-        it("Should define an Entity without trouble", () => 
-        {
+    describe("EntityTest", () => {
+        it("Should define an Entity without trouble", () => {
             let contact = new Contact();
             contact.setLastName("Guedes");
             expect(contact.getLastName()).to.be.equal("Guedes");
@@ -155,12 +151,9 @@ describe("ORMTest", function()
         });
     });
 
-    describe("RepositoryTest", () => 
-    {
-        describe("Inserting Entitities", () => 
-        {
-            it("Should save Entity without trouble", done => 
-            {
+    describe("RepositoryTest", () => {
+        describe("Inserting Entitities", () => {
+            it("Should save Entity without trouble", done => {
                 let contact = new Contact();
                 contact.setFirstName("Vinicius");
                 contact.setLastName("Guedes");
@@ -168,8 +161,7 @@ describe("ORMTest", function()
                 let contactRepository = new ContactRepository();
                 contactRepository
                     .save(contact)
-                    .then(response => 
-                    {
+                    .then(response => {
                         expect(response).to.be.true;
                         expect(contact).to.have.property("primary");
                         expect(contact.getId()).to.be.equal(1);
@@ -177,16 +169,14 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
-            it("Should validate REQUIRED fields", done => 
-            {
+            it("Should validate REQUIRED fields", done => {
                 let contact = new Contact();
                 contact.setFirstName("Vinicius");
 
                 let contactRepository = new ContactRepository();
                 contactRepository
                     .save(contact)
-                    .then(response => 
-                    {
+                    .then(response => {
                         expect(response).to.be.false;
 
                         let errors = contactRepository.getErrors();
@@ -195,8 +185,7 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
-            it("Should validate REQUIRED integer fields", done => 
-            {
+            it("Should validate REQUIRED integer fields", done => {
                 let contactRepository = new ContactRepository();
                 contactRepository
                     .save({
@@ -208,19 +197,17 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
-            it("Should validate fields MAX LENGTH", done => 
-            {
+            it("Should validate fields MAX LENGTH", done => {
                 let contact = new Contact();
                 contact.setFirstName("01234567890123456789012345678901234567890123456789" +
-                        "012345678901234567890123456789012345678901234567891");
+                    "012345678901234567890123456789012345678901234567891");
                 contact.setLastName("Guedes");
                 contact.setAge(100);
 
                 let contactRepository = new ContactRepository();
                 contactRepository
                     .save(contact)
-                    .then(response => 
-                    {
+                    .then(response => {
                         expect(response).to.be.false;
 
                         let errors = contactRepository.getErrors();
@@ -229,8 +216,7 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
-            it("Should validate fields MIN LENGTH", done => 
-            {
+            it("Should validate fields MIN LENGTH", done => {
                 let contact = new Contact();
                 contact.setFirstName("Vinicius");
                 contact.setLastName("G");
@@ -239,8 +225,7 @@ describe("ORMTest", function()
                 let contactRepository = new ContactRepository();
                 contactRepository
                     .save(contact)
-                    .then(response => 
-                    {
+                    .then(response => {
                         expect(response).to.be.false;
 
                         let errors = contactRepository.getErrors();
@@ -249,8 +234,7 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
-            it("Should present error after validating", done => 
-            {
+            it("Should present error after validating", done => {
                 let contact = new Contact();
                 contact.setFirstName("Vinicius");
                 contact.setLastName("Guedes");
@@ -259,18 +243,15 @@ describe("ORMTest", function()
                 let contactRepository = new ContactRepository();
                 contactRepository
                     .save(contact)
-                    .then(response => 
-                    {
+                    .then(response => {
                         expect(response).to.be.false;
                     })
                     .then(() => done());
             });
         });
 
-        describe("Finding entity list", () => 
-        {
-            it("Creating entities before start filtering", async () => 
-            {
+        describe("Finding entity list", () => {
+            it("Creating entities before start filtering", async () => {
                 let contactRepository = new ContactRepository();
 
                 await contactRepository.save({
@@ -293,20 +274,17 @@ describe("ORMTest", function()
                 });
             });
 
-            it("Should filter through entities by string", done => 
-            {
+            it("Should filter through entities by string", done => {
                 new ContactRepository()
                     .find("first_name LIKE '%Fel%' OR last_name LIKE '%Pam%'")
-                    .then(entities => 
-                    {
+                    .then(entities => {
                         expect(entities).to.be.instanceOf(Array);
                         expect(entities.length).to.be.equal(2);
                     })
                     .then(() => done());
             });
 
-            it("Should filter through entities by object", done => 
-            {
+            it("Should filter through entities by object", done => {
                 new ContactRepository()
                     .find({
                         first_name: "Joabe",
@@ -314,30 +292,25 @@ describe("ORMTest", function()
                             like: "San"
                         }
                     })
-                    .then(entities => 
-                    {
+                    .then(entities => {
                         expect(entities).to.be.instanceOf(Array);
                         expect(entities.length).to.be.equal(1);
                     })
                     .then(() => done());
             });
 
-            it("Should order results", done => 
-            {
+            it("Should order results", done => {
                 new ContactRepository()
-                    .find({}, 10, 0, ["first_name", "last_name"])
-                    .then(entities => 
-                    {
+                    .find({}, 10, 0, ["first_name DESC", "last_name"])
+                    .then(entities => {
                         expect(entities).to.be.instanceOf(Array);
                     })
                     .then(() => done());
             });
         });
 
-        describe("Finding and Updating Entity by ID", () => 
-        {
-            it("Should find an Entity by ID and update it without trouble", async () => 
-            {
+        describe("Finding and Updating Entity by ID", () => {
+            it("Should find an Entity by ID and update it without trouble", async () => {
                 let contactRepository = new ContactRepository();
                 let contact = await contactRepository.findById(1);
                 expect(contact).to.be.instanceOf(Contact);
@@ -349,8 +322,7 @@ describe("ORMTest", function()
                 expect(response).to.be.true;
             });
 
-            it("Should return true even if no field is updated", async () => 
-            {
+            it("Should return true even if no field is updated", async () => {
                 let contactRepository = new ContactRepository();
                 let contact = await contactRepository.findById(1);
 
@@ -358,41 +330,33 @@ describe("ORMTest", function()
                 expect(response).to.be.true;
             });
 
-            it("Should present error when searching for non existent entity", async () => 
-            {
+            it("Should present error when searching for non existent entity", async () => {
                 expect(await new ContactRepository().findById(-10)).to.be.null;
             });
         });
 
-        describe("Finding one entity by filters", () => 
-        {
-            it("Should find an Entity without trouble", done => 
-            {
+        describe("Finding one entity by filters", () => {
+            it("Should find an Entity without trouble", done => {
                 new ContactRepository()
                     .findOne()
-                    .then(contact => 
-                    {
+                    .then(contact => {
                         expect(contact).to.be.instanceof(Contact);
                     })
                     .then(() => done());
             });
 
-            it("Should return null when nothing is find", done => 
-            {
+            it("Should return null when nothing is find", done => {
                 new ContactRepository()
                     .findOne("first_name=2")
-                    .then(contact => 
-                    {
+                    .then(contact => {
                         expect(contact).to.be.null;
                     })
                     .then(() => done());
             });
         });
 
-        describe("Counting registers", () => 
-        {
-            it("Should count amount of contacts without trouble", done => 
-            {
+        describe("Counting registers", () => {
+            it("Should count amount of contacts without trouble", done => {
                 let contactRepository = new ContactRepository();
 
                 contactRepository
@@ -401,8 +365,7 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
-            it("Should count amount contacts filtered", done => 
-            {
+            it("Should count amount contacts filtered", done => {
                 let contactRepository = new ContactRepository();
 
                 contactRepository
@@ -414,10 +377,8 @@ describe("ORMTest", function()
             });
         });
 
-        describe("Finding and Deleting Entity", () => 
-        {
-            it("Should find an Entity by ID and delete it without trouble", async () => 
-            {
+        describe("Finding and Deleting Entity", () => {
+            it("Should find an Entity by ID and delete it without trouble", async () => {
                 let contactRepository = new ContactRepository();
 
                 let contact = await contactRepository.findById(1);
@@ -429,10 +390,8 @@ describe("ORMTest", function()
             });
         });
 
-        describe("Repositories events", () => 
-        {
-            it("Should set default error message when not defined in before validate", done => 
-            {
+        describe("Repositories events", () => {
+            it("Should set default error message when not defined in before validate", done => {
                 let contactRepository = new ContactRepository();
 
                 contactRepository
@@ -445,8 +404,7 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
-            it("Should set default error message when not defined in before validate", done => 
-            {
+            it("Should set default error message when not defined in before validate", done => {
                 let contactRepository = new ContactRepository();
 
                 contactRepository
@@ -460,8 +418,7 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
-            it("Should set default error message when not defined in before validate", done => 
-            {
+            it("Should set default error message when not defined in before validate", done => {
                 let contactRepository = new ContactRepository();
 
                 contactRepository
@@ -474,8 +431,7 @@ describe("ORMTest", function()
                     .then(() => done());
             });
 
-            it("Should set default error message when not defined in before validate", done => 
-            {
+            it("Should set default error message when not defined in before validate", done => {
                 let contactRepository = new ContactRepository();
 
                 contactRepository
@@ -491,10 +447,8 @@ describe("ORMTest", function()
         });
     });
 
-    describe("Handling associations", () => 
-    {
-        it("Should find an Entity and associated HASMANY entities", async () => 
-        {
+    describe("Handling associations", () => {
+        it("Should find an Entity and associated HASMANY entities", async () => {
             let contact = await new ContactRepository().findById(1);
 
             let phones = await contact.getPhones();
@@ -503,8 +457,7 @@ describe("ORMTest", function()
             expect(phones[0].isActive()).to.be.true;
         });
 
-        it("Should find an Entity and associated BELONGSTO entities", async () => 
-        {
+        it("Should find an Entity and associated BELONGSTO entities", async () => {
             let contact = await new ContactRepository().findById(1);
 
             let phones = await contact.getPhones();
@@ -518,8 +471,7 @@ describe("ORMTest", function()
             expect(contactAgain.getId()).to.be.equal(1);
         });
 
-        it("Should find and Entity and associated MANYMANY entities", async () => 
-        {
+        it("Should find and Entity and associated MANYMANY entities", async () => {
             let contact = await new ContactRepository().findById(1);
 
             let schedules = await contact.getSchedules();
@@ -530,21 +482,18 @@ describe("ORMTest", function()
             expect(schedules[0].getStartTime().getFullYear()).to.be.equal(2017);
         });
 
-        it("Should return null when BELONGSTO returns nothing", async () => 
-        {
+        it("Should return null when BELONGSTO returns nothing", async () => {
             let contact = await new ContactRepository().findById(1);
             expect(await contact.getAddress()).to.be.null;
         });
 
-        it("Should return null when association is defiend wrongly", async () => 
-        {
+        it("Should return null when association is defiend wrongly", async () => {
             let contact = await new ContactRepository().findById(1);
 
             expect(await contact.something).to.be.null;
         });
 
-        it("Should handle WITHS", async () => 
-        {
+        it("Should handle WITHS", async () => {
             let schedulesRepository = new SchedulesRepository();
             let schedule = await schedulesRepository
                 .with("contact.phones")
@@ -558,10 +507,8 @@ describe("ORMTest", function()
         });
     });
 
-    describe("Saving data without time updates", () => 
-    {
-        it("Should insert a Schedule without created_at", done => 
-        {
+    describe("Saving data without time updates", () => {
+        it("Should insert a Schedule without created_at", done => {
             let schedule = {
                 start_time: new Date(),
                 end_time: new Date(),
@@ -570,16 +517,14 @@ describe("ORMTest", function()
 
             new SchedulesRepository()
                 .save(schedule)
-                .then(response => 
-                {
+                .then(response => {
                     expect(response).to.be.true;
                     Config.set("schedule.id", schedule["id"]);
                 })
                 .then(() => done());
         });
 
-        it("Should update a Schedule without updated_at", async () => 
-        {
+        it("Should update a Schedule without updated_at", async () => {
             let schedulesRepository = new SchedulesRepository();
 
             let schedule = await schedulesRepository.findById(Config.get("schedule.id"));
@@ -590,8 +535,7 @@ describe("ORMTest", function()
         });
     });
 
-    after(function(done) 
-    {
+    after(function (done) {
         let qb = DB.Factory.getQueryBuilder();
         Promise.all([
             qb
