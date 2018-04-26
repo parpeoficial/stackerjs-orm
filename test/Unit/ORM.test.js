@@ -325,7 +325,7 @@ describe("ORMTest", function ()
             it("Should order results", done => 
             {
                 new ContactRepository()
-                    .find({}, 10, 0, ["first_name DESC", "last_name"])
+                    .find(null, 10, 0, ["first_name DESC", "last_name"])
                     .then(entities => 
                     {
                         expect(entities).to.be.instanceOf(Array);

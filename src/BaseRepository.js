@@ -161,15 +161,16 @@ export class BaseRepository
         });
     }
 
-    find(filter, limit = 100, offset = 0, orders = null) 
+    find(filter = null, limit = 100, offset = 0, orders = null) 
     {
         let queryBuilder = DB.Factory.getQueryBuilder()
             .select()
             .from(this.entity.metadata().table)
             .set("*")
-            .where(filter)
             .limit(limit)
             .offset(offset);
+
+        if (filter) queryBuilder.where(filter);
 
         if (orders) queryBuilder.order(...orders.map(o => 
         {
@@ -192,8 +193,9 @@ export class BaseRepository
             .select()
             .from(this.entity.metadata().table)
             .set("*")
-            .where(filter)
             .limit(1);
+
+        if (filter) queryBuilder.where(filter);
 
         return queryBuilder.execute().then(([result]) => 
         {
