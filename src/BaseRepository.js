@@ -246,10 +246,7 @@ export class BaseRepository
 
         let createdAt = this.getFieldByType("created_at");
         if (createdAt)
-            entity[createdAt] = parseInt(new Date()
-                .getTime()
-                .toString()
-                .slice(0, -3));
+            entity[createdAt] = this.getCurrentTimeStamp();
 
         this.entity.metadata().fields.forEach(field => 
         {
@@ -290,10 +287,7 @@ export class BaseRepository
 
         let updatedAt = this.getFieldByType("updated_at");
         if (updatedAt)
-            entity[updatedAt] = parseInt(new Date()
-                .getTime()
-                .toString()
-                .slice(0, -3));
+            entity[updatedAt] = this.getCurrentTimeStamp();
 
         this.entity.metadata().fields.forEach(field => 
         {
@@ -360,5 +354,13 @@ export class BaseRepository
             )
                 entity[fieldName] = field.default;
         });
+    }
+
+    getCurrentTimeStamp() 
+    {
+        return parseInt(new Date()
+            .getTime()
+            .toString()
+            .slice(0, -3));
     }
 }
