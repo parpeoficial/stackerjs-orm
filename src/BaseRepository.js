@@ -296,6 +296,7 @@ export class BaseRepository
             {
                 if (
                     field.type !== "created_at" &&
+                    field.type !== "updated_at" &&
                     queryBuilder.treatValue(entity[fieldName]) !==
                     queryBuilder.treatValue(entity._attributes[field.name])
                 ) 
