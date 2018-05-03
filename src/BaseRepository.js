@@ -252,6 +252,7 @@ export class BaseRepository
         {
             if (
                 field.type !== "pk" &&
+                field.type !== "updated_at" &&
                 entity[field.alias ? field.alias : field.name] !== null &&
                 typeof entity[field.alias ? field.alias : field.name] !==
                 "undefined"
@@ -279,7 +280,7 @@ export class BaseRepository
 
     update(entity) 
     {
-        let parameters = 1;
+        let parameters = 0;
         let expr = DB.Factory.getQueryCriteria();
         let queryBuilder = DB.Factory.getQueryBuilder()
             .update()
@@ -292,18 +293,14 @@ export class BaseRepository
         this.entity.metadata().fields.forEach(field => 
         {
             let fieldName = field.alias ? field.alias : field.name;
-            if (field.type !== "pk") 
+            if (field.type !== "pk" &&
+                field.type !== "created_at" &&
+                queryBuilder.treatValue(entity[fieldName]) !==
+                queryBuilder.treatValue(entity._attributes[field.name])
+            ) 
             {
-                if (
-                    field.type !== "created_at" &&
-                    field.type !== "updated_at" &&
-                    queryBuilder.treatValue(entity[fieldName]) !==
-                    queryBuilder.treatValue(entity._attributes[field.name])
-                ) 
-                {
-                    parameters++;
-                    queryBuilder.set(field.name, entity[fieldName]);
-                }
+                parameters++;
+                queryBuilder.set(field.name, entity[fieldName]);
             }
         });
         if (parameters <= 1) return Promise.resolve(true);
