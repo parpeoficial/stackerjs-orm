@@ -100,24 +100,6 @@ export class BaseRepository extends BaseRepositoryHooks
         });
     }
 
-    findById(id) 
-    {
-        let expr = DB.Factory.getQueryCriteria();
-        let queryBuilder = DB.Factory.getQueryBuilder()
-            .select()
-            .set("*")
-            .from(this.entity.metadata().table)
-            .where(expr.eq(this.getFieldByType("pk"), id))
-            .limit(1);
-
-        return queryBuilder.execute().then(async results => 
-        {
-            if (results.length <= 0) return null;
-
-            return await Util.makeEntity(this.entity, results[0], this.withs);
-        });
-    }
-
     find(filter = null, limit = 100, offset = 0, orders = null) 
     {
         let queryBuilder = DB.Factory.getQueryBuilder()
@@ -144,15 +126,19 @@ export class BaseRepository extends BaseRepositoryHooks
         });
     }
 
+    findById(id) 
+    {
+        let filters = {};
+        filters[this.getFieldByType("pk")] = id;
+
+        return this.find(filters, 1, 0, null)
+            .then(([result]) => result ? result : null);
+    }
+
     findOne(filter) 
     {
         return this.find(filter, 1, 0, null)
-            .then(([result]) => 
-            {
-                if (!result) return null;
-
-                return result;
-            });
+            .then(([result]) => result ? result : null);
     }
 
     count(filters = null) 
