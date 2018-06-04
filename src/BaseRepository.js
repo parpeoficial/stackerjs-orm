@@ -21,15 +21,7 @@ export class BaseRepository extends BaseRepositoryHooks
 
     async validate(entity) 
     {
-        if (!await this.beforeValidate(entity)) 
-        {
-            if (!this.hasErrors())
-                this.addError(
-                    "validation",
-                    "Presented problems before validating"
-                );
-            return false;
-        }
+        if (!await this.beforeValidate(entity)) return false;
 
         this.entity.metadata().fields.forEach(field => 
         {
@@ -49,10 +41,7 @@ export class BaseRepository extends BaseRepositoryHooks
                 (entity[fieldName] > field.max ||
                     entity[fieldName].length > field.max)
             )
-                this.addError(
-                    field.name,
-                    `Field length must be under ${field.max}`
-                );
+                this.addError(field.name, `Field length is over ${field.max}`);
 
             if (
                 field.min &&
@@ -60,10 +49,7 @@ export class BaseRepository extends BaseRepositoryHooks
                 (entity[fieldName] < field.min ||
                     entity[fieldName].length < field.min)
             )
-                this.addError(
-                    field.name,
-                    `Field length must be over ${field.min}`
-                );
+                this.addError(field.name, `Field length is under ${field.min}`);
         });
 
         if (!await this.afterValidate(entity)) return false;
