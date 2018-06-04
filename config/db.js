@@ -6,5 +6,5 @@ module.exports = {
     name: Config.env("db.name"),
     user: Config.env("db.user"),
     pass: Config.env("db.pass"),
-    log: true
+    log: Config.env("db.log")
 };

@@ -6,8 +6,6 @@ export class Util
     {
         if (Array.isArray(withs)) withs = this.prepareAssociations(withs);
 
-        let metadata = defaultEntity.metadata();
-
         let entity = Object.create(defaultEntity),
             properties = {
                 _attributes: {
@@ -16,14 +14,14 @@ export class Util
             },
             relations = {};
 
-        this.makeEntityFields(properties, attributes, entity, metadata);
+        this.makeEntityFields(properties, attributes, entity, defaultEntity.metadata());
         Object.defineProperties(entity, properties);
 
         await this.makeEntityRelations(
             relations,
             attributes,
             entity,
-            metadata,
+            defaultEntity.metadata(),
             withs
         );
         Object.defineProperties(entity, relations);
@@ -48,7 +46,8 @@ export class Util
         }
         else if (type === "created_at" || type === "updated_at")
             return value ? value * 1000 : null;
-        else return value;
+
+        return value;
     }
 
     static MANYMANYAssociation(entity, relation, withs = []) 

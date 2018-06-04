@@ -24,7 +24,7 @@ notifications:
 before_install:
   - sudo mysql_upgrade
   - sudo service mysql restart
-  - npm install -g istanbul
+  - npm install -g istanbul babel-cli
 
 before_script:
   - echo DB_DRIVER=stackerjs-db-mysql-adapter >> .env
