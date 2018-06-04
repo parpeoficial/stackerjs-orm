@@ -18,7 +18,7 @@
     "engines": {
         "node": ">=7.10"
     },
-    "main": "lib/ORM.js",
+    "main": "lib/index.js",
     "dependencies": {
         "babel-polyfill": "^6.26.0",
         "stackerjs-db": "^1.1.2",
