@@ -1,25 +1,15 @@
 import { DB } from "stackerjs-db";
-import { BaseService } from "./BaseService";
 import { Util } from "./Util";
+import { BaseRepositoryHooks } from "./BaseRepositoryHooks";
 
 
-export class BaseRepository extends BaseService 
+export class BaseRepository extends BaseRepositoryHooks 
 {
     constructor() 
     {
         super();
 
         this.withs = [];
-    }
-
-    beforeValidate() 
-    {
-        return Promise.resolve(true);
-    }
-
-    afterValidate() 
-    {
-        return Promise.resolve(true);
     }
 
     with(withs) 
@@ -79,16 +69,6 @@ export class BaseRepository extends BaseService
         if (!await this.afterValidate(entity)) return false;
 
         return !this.hasErrors();
-    }
-
-    beforeSave() 
-    {
-        return Promise.resolve(true);
-    }
-
-    afterSave() 
-    {
-        return Promise.resolve(true);
     }
 
     async save(entity, validate = true) 
@@ -166,20 +146,13 @@ export class BaseRepository extends BaseService
 
     findOne(filter) 
     {
-        let queryBuilder = DB.Factory.getQueryBuilder()
-            .select()
-            .from(this.entity.metadata().table)
-            .set("*")
-            .limit(1);
+        return this.find(filter, 1, 0, null)
+            .then(([result]) => 
+            {
+                if (!result) return null;
 
-        if (filter) queryBuilder.where(filter);
-
-        return queryBuilder.execute().then(([result]) => 
-        {
-            if (!result) return null;
-
-            return Util.makeEntity(this.entity, result, this.withs);
-        });
+                return result;
+            });
     }
 
     count(filters = null) 

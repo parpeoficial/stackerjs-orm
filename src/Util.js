@@ -62,7 +62,7 @@ export class Util
                 "INNER",
                 relation.referencedEntity.metadata().table,
                 `${relation.table}.${relation.referencedField} = ` +
-                    `${relation.referencedEntity.metadata().table}.id`
+                `${relation.referencedEntity.metadata().table}.id`
             )
             .where(expr.eq(relation.field, entity["_attributes"]["id"]));
 
@@ -170,7 +170,7 @@ export class Util
                     )();
                 else if (
                     relation.type === "HASONE" ||
-                        relation.type === "BELONGSTO"
+                    relation.type === "BELONGSTO"
                 )
                     return this.HASONEAssociation(
                         entity,
