@@ -1,48 +1,15 @@
 import { DB } from "stackerjs-db";
 import { Util } from "./Util";
+import { BaseRepositoryHooks } from "./BaseRepositoryHooks";
 
-export class BaseRepository 
+
+export class BaseRepository extends BaseRepositoryHooks 
 {
     constructor() 
     {
-        this.errors = {};
+        super();
+
         this.withs = [];
-    }
-
-    addError(field, message) 
-    {
-        if (!message) 
-        {
-            message = field;
-            field = "Database";
-        }
-
-        if (!Array.isArray(this.errors[field])) this.errors[field] = [];
-
-        if (message instanceof Error)
-            return this.errors[field].push(message.message);
-
-        this.errors[field].push(message);
-    }
-
-    getErrors() 
-    {
-        return this.errors;
-    }
-
-    hasErrors() 
-    {
-        return Object.keys(this.errors).length > 0;
-    }
-
-    beforeValidate() 
-    {
-        return Promise.resolve(true);
-    }
-
-    afterValidate() 
-    {
-        return Promise.resolve(true);
     }
 
     with(withs) 
@@ -54,15 +21,7 @@ export class BaseRepository
 
     async validate(entity) 
     {
-        if (!await this.beforeValidate(entity)) 
-        {
-            if (!this.hasErrors())
-                this.addError(
-                    "validation",
-                    "Presented problems before validating"
-                );
-            return false;
-        }
+        if (!await this.beforeValidate(entity)) return false;
 
         this.entity.metadata().fields.forEach(field => 
         {
@@ -82,10 +41,7 @@ export class BaseRepository
                 (entity[fieldName] > field.max ||
                     entity[fieldName].length > field.max)
             )
-                this.addError(
-                    field.name,
-                    `Field length must be under ${field.max}`
-                );
+                this.addError(field.name, `Field length is over ${field.max}`);
 
             if (
                 field.min &&
@@ -93,25 +49,12 @@ export class BaseRepository
                 (entity[fieldName] < field.min ||
                     entity[fieldName].length < field.min)
             )
-                this.addError(
-                    field.name,
-                    `Field length must be over ${field.min}`
-                );
+                this.addError(field.name, `Field length is under ${field.min}`);
         });
 
         if (!await this.afterValidate(entity)) return false;
 
         return !this.hasErrors();
-    }
-
-    beforeSave() 
-    {
-        return Promise.resolve(true);
-    }
-
-    afterSave() 
-    {
-        return Promise.resolve(true);
     }
 
     async save(entity, validate = true) 
@@ -143,24 +86,6 @@ export class BaseRepository
         });
     }
 
-    findById(id) 
-    {
-        let expr = DB.Factory.getQueryCriteria();
-        let queryBuilder = DB.Factory.getQueryBuilder()
-            .select()
-            .set("*")
-            .from(this.entity.metadata().table)
-            .where(expr.eq(this.getFieldByType("pk"), id))
-            .limit(1);
-
-        return queryBuilder.execute().then(async results => 
-        {
-            if (results.length <= 0) return null;
-
-            return await Util.makeEntity(this.entity, results[0], this.withs);
-        });
-    }
-
     find(filter = null, limit = 100, offset = 0, orders = null) 
     {
         let queryBuilder = DB.Factory.getQueryBuilder()
@@ -187,22 +112,19 @@ export class BaseRepository
         });
     }
 
+    findById(id) 
+    {
+        let filters = {};
+        filters[this.getFieldByType("pk")] = id;
+
+        return this.find(filters, 1, 0, null)
+            .then(([result]) => result ? result : null);
+    }
+
     findOne(filter) 
     {
-        let queryBuilder = DB.Factory.getQueryBuilder()
-            .select()
-            .from(this.entity.metadata().table)
-            .set("*")
-            .limit(1);
-
-        if (filter) queryBuilder.where(filter);
-
-        return queryBuilder.execute().then(([result]) => 
-        {
-            if (!result) return null;
-
-            return Util.makeEntity(this.entity, result, this.withs);
-        });
+        return this.find(filter, 1, 0, null)
+            .then(([result]) => result ? result : null);
     }
 
     count(filters = null) 
