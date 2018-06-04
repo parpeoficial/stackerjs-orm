@@ -1,38 +1,15 @@
 import { DB } from "stackerjs-db";
+import { BaseService } from "./BaseService";
 import { Util } from "./Util";
 
-export class BaseRepository 
+
+export class BaseRepository extends BaseService 
 {
     constructor() 
     {
-        this.errors = {};
+        super();
+
         this.withs = [];
-    }
-
-    addError(field, message) 
-    {
-        if (!message) 
-        {
-            message = field;
-            field = "Database";
-        }
-
-        if (!Array.isArray(this.errors[field])) this.errors[field] = [];
-
-        if (message instanceof Error)
-            return this.errors[field].push(message.message);
-
-        this.errors[field].push(message);
-    }
-
-    getErrors() 
-    {
-        return this.errors;
-    }
-
-    hasErrors() 
-    {
-        return Object.keys(this.errors).length > 0;
     }
 
     beforeValidate() 
