@@ -38,11 +38,11 @@ before_script:
   - ./cc-test-reporter before-build
 
 after_script:
-  - npm run build
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
   - rm -rf ./cc-test-reporter
 
 after_success:
+  - npm run build
   - npm run travis-deploy-once "npm run semantic-release"
 
 branches:
