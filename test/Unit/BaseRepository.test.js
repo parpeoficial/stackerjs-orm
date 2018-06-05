@@ -7,7 +7,7 @@ import {
     SchedulesRepository
 } from "./../DataProvider/Repositories";
 
-describe("ORMTest", function () 
+describe("Unit/BaseRepositoryTest", function () 
 {
     this.timeout(6000);
     before(function (done) 
