@@ -1,9 +1,9 @@
 import { DB } from "stackerjs-db";
 import { Util } from "./Util";
-import { BaseRepositoryHooks } from "./BaseRepositoryHooks";
+import { BaseRepositoryEntities } from "./BaseRepositoryEntities";
 
 
-export class BaseRepository extends BaseRepositoryHooks 
+export class BaseRepository extends BaseRepositoryEntities 
 {
     constructor() 
     {
@@ -162,35 +162,25 @@ export class BaseRepository extends BaseRepositoryHooks
 
     insert(entity) 
     {
-        let queryBuilder = DB.Factory.getQueryBuilder()
-            .insert()
-            .into(this.entity.metadata().table);
-
         let createdAt = this.getFieldByType("created_at");
         if (createdAt)
             entity[createdAt] = this.getCurrentTimeStamp();
 
-        this.entity.metadata().fields.forEach(field => 
-        {
-            if (
-                field.type !== "pk" &&
-                field.type !== "updated_at" &&
-                entity[field.alias ? field.alias : field.name] !== null &&
-                typeof entity[field.alias ? field.alias : field.name] !==
-                "undefined"
-            )
-                queryBuilder.set(
-                    field.name,
-                    entity[field.alias ? field.alias : field.name]
-                );
-        });
+        let attributes = this.buildAttributesForManipulation(entity, field =>
+            field.type !== "pk" &&
+            field.type !== "updated_at" &&
+            entity[field.alias ? field.alias : field.name] !== null &&
+            typeof entity[field.alias ? field.alias : field.name] !==
+            "undefined");
 
-        return queryBuilder
+        return DB.Factory.getQueryBuilder()
+            .insert()
+            .into(this.entity.metadata().table)
+            .set(attributes)
             .execute()
             .then(response => 
             {
-                entity[this.getFieldByType("pk", true)] =
-                    response.lastInsertedId;
+                entity[this.getFieldByType("pk", true)] = response.lastInsertedId;
                 return true;
             })
             .catch(err => 
@@ -202,35 +192,26 @@ export class BaseRepository extends BaseRepositoryHooks
 
     update(entity) 
     {
-        let parameters = 0;
-        let expr = DB.Factory.getQueryCriteria();
-        let queryBuilder = DB.Factory.getQueryBuilder()
-            .update()
-            .into(this.entity.metadata().table);
+        let queryBuilder = DB.Factory.getQueryBuilder().update();
 
         let updatedAt = this.getFieldByType("updated_at");
         if (updatedAt)
             entity[updatedAt] = this.getCurrentTimeStamp();
 
-        this.entity.metadata().fields.forEach(field => 
-        {
-            let fieldName = field.alias ? field.alias : field.name;
-            if (field.type !== "pk" &&
-                field.type !== "created_at" &&
-                queryBuilder.treatValue(entity[fieldName]) !==
-                queryBuilder.treatValue(entity._attributes[field.name])
-            ) 
-            {
-                parameters++;
-                queryBuilder.set(field.name, entity[fieldName]);
-            }
-        });
-        if (parameters <= 1) return Promise.resolve(true);
+        let attributes = this.buildAttributesForManipulation(entity, field =>
+            field.type !== "pk" && field.type !== "created_at" &&
+            queryBuilder.treatValue(entity[field.alias ? field.alias : field.name]) !== queryBuilder.treatValue(entity._attributes[field.alias ? field.alias : field.name]));
 
-        queryBuilder.where(expr.eq(
-            this.getFieldByType("pk"),
-            entity._attributes[this.getFieldByType("pk")]
-        ));
+        if (Object.keys(attributes).length <= 1) return Promise.resolve(true);
+
+        let expr = DB.Factory.getQueryCriteria();
+        queryBuilder
+            .into(this.entity.metadata().table)
+            .set(attributes)
+            .where(expr.eq(
+                this.getFieldByType("pk"),
+                entity._attributes[this.getFieldByType("pk")]
+            ));
 
         return queryBuilder
             .execute()
@@ -242,45 +223,15 @@ export class BaseRepository extends BaseRepositoryHooks
             });
     }
 
-    isNewRecord(entity) 
+    buildAttributesForManipulation(entity, callback) 
     {
-        return (
-            !entity._attributes ||
-            typeof entity._attributes[this.getFieldByType("pk")] ===
-            "undefined" ||
-            !entity._attributes[this.getFieldByType("pk")]
-        );
+        let attributes = {};
+        this.entity.metadata().fields
+            .filter(callback)
+            .forEach(field =>
+                attributes[field.name] = entity[field.alias ? field.alias : field.name]);
+
+        return attributes;
     }
 
-    getFieldByType(type, alias = false) 
-    {
-        for (let field of this.entity.metadata().fields) 
-        {
-            if (field.type === type)
-                return field.alias && alias ? field.alias : field.name;
-        }
-
-        return null;
-    }
-
-    prepare(entity) 
-    {
-        this.entity.metadata().fields.forEach(field => 
-        {
-            let fieldName = field.alias ? field.alias : field.name;
-            if (
-                typeof entity[fieldName] === "undefined" &&
-                (field.default || field.default === 0)
-            )
-                entity[fieldName] = field.default;
-        });
-    }
-
-    getCurrentTimeStamp() 
-    {
-        return parseInt(new Date()
-            .getTime()
-            .toString()
-            .slice(0, -3));
-    }
 }

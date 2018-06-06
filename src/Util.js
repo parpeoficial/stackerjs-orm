@@ -9,7 +9,8 @@ export class Util
         let entity = Object.create(defaultEntity),
             properties = {
                 _attributes: {
-                    value: attributes
+                    value: attributes,
+                    enumerable: true
                 }
             },
             relations = {};
