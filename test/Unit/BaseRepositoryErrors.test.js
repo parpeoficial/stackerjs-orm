@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { DB } from "stackerjs-db";
 import { ContactRepository } from "./../DataProvider/Repositories";
 
-describe("ORMErrorsTest", () => 
+describe("Unit/BaseRepositoryErrorsTest", () => 
 {
     describe("Testing some database problems", () => 
     {

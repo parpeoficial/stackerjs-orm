@@ -9,8 +9,11 @@ export class Util
         let entity = Object.create(defaultEntity),
             properties = {
                 _attributes: {
-                    value: attributes,
-                    enumerable: true
+                    value: attributes
+                },
+                attributes: {
+                    enumerable: false,
+                    set: this.setAttributes
                 }
             },
             relations = {};
@@ -28,6 +31,12 @@ export class Util
         Object.defineProperties(entity, relations);
 
         return entity;
+    }
+
+    static setAttributes(attributes) 
+    {
+        Object.keys(attributes).forEach(key =>
+            this[key] = attributes[key]);
     }
 
     static fieldValueParser(type, value) 
