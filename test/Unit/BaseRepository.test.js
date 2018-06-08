@@ -7,7 +7,7 @@ import {
     SchedulesRepository
 } from "./../DataProvider/Repositories";
 
-describe("ORMTest", function () 
+describe("Unit/BaseRepositoryTest", function () 
 {
     this.timeout(6000);
     before(function (done) 
@@ -342,8 +342,10 @@ describe("ORMTest", function ()
                 let contact = await contactRepository.findById(1);
                 expect(contact).to.be.instanceOf(Contact);
                 expect(contact.getLastName()).to.be.equal("Guedes");
-                contact.setFirstName("Rafael");
-                contact.setLastName("Ali");
+                contact.attributes = {
+                    first_name: "Rafael",
+                    last_name: "Ali"
+                };
 
                 let response = await contactRepository.save(contact);
                 expect(response).to.be.true;
