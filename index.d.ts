@@ -14,10 +14,8 @@ declare module "stackerjs-orm"
 
         }
 
-        export abstract class BaseEntity implements StackerJS.ORM.IEntity
+        export abstract class BaseEntity extends StackerJS.ORM.BaseEntity
         {
-
-            attributes: any;
 
         }
 
