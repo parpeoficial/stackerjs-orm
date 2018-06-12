@@ -10,20 +10,15 @@ export class Util
             properties = {
                 _attributes: {
                     value: attributes
-                },
-                attributes: {
-                    enumerable: false,
-                    set: this.setAttributes
                 }
             },
             relations = {};
 
-        this.makeEntityFields(properties, attributes, entity, defaultEntity.metadata());
+        this.makeEntityFields(properties, attributes, defaultEntity.metadata());
         Object.defineProperties(entity, properties);
 
         await this.makeEntityRelations(
             relations,
-            attributes,
             entity,
             defaultEntity.metadata(),
             withs
@@ -31,12 +26,6 @@ export class Util
         Object.defineProperties(entity, relations);
 
         return entity;
-    }
-
-    static setAttributes(attributes) 
-    {
-        Object.keys(attributes).forEach(key =>
-            this[key] = attributes[key]);
     }
 
     static fieldValueParser(type, value) 
@@ -137,7 +126,7 @@ export class Util
                         ))));
     }
 
-    static makeEntityFields(properties, attributes, entity, metadata) 
+    static makeEntityFields(properties, attributes, metadata) 
     {
         metadata.fields.forEach(field => 
         {
@@ -161,7 +150,6 @@ export class Util
 
     static async makeEntityRelations(
         properties,
-        attributes,
         entity,
         metadata,
         withs

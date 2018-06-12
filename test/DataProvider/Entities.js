@@ -1,4 +1,6 @@
-class Contact 
+import { ORM } from "./../../src/index";
+
+class Contact extends ORM.BaseEntity 
 {
     metadata() 
     {

@@ -8,9 +8,16 @@ declare module "stackerjs-orm"
     {
 
         export abstract class BaseRepository extends StackerJS.ORM.BaseRepository
-        { 
+        {
 
-            abstract entity:StackerJS.ORM.IEntity;
+            abstract entity: StackerJS.ORM.IEntity;
+
+        }
+
+        export abstract class BaseEntity implements StackerJS.ORM.IEntity
+        {
+
+            attributes: any;
 
         }
 
