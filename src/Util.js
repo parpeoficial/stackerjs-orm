@@ -31,7 +31,7 @@ export class Util
     static fieldValueParser(type, value) 
     {
         if (type === "boolean") return value === 1;
-        else if (type === "date") return new Date(value);
+        else if (type === "date") return value ? new Date(value) : null;
         else if (type === "json") 
         {
             try 

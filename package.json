@@ -31,6 +31,7 @@
         "babel-preset-es2017": "^6.24.1",
         "babel-register": "^6.26.0",
         "chai": "^4.1.2",
+        "eslint": "^5.0.1",
         "husky": "^0.14.3",
         "lint-staged": "^7.0.5",
         "mocha": "^5.1.1",
@@ -58,7 +59,7 @@
     },
     "scripts": {
         "precommit": "./node_modules/.bin/lint-staged",
-        "lint": "eslint src/ test/ --fix",
+        "lint": "./node_modules/.bin/eslint src/ test/ --fix",
         "build": "babel src -d lib",
         "test": "./node_modules/.bin/nyc ./node_modules/mocha/bin/_mocha",
         "travis-deploy-once": "travis-deploy-once",
